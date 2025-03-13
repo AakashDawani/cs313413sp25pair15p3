@@ -1,13 +1,13 @@
 package edu.luc.etl.cs313.android.shapes.model;
 
-import java.util.List;
-
 /**
  * A shape visitor for calculating the bounding box, that is, the smallest
  * rectangle containing the shape. The resulting bounding box is returned as a
  * rectangle at a specific location.
  */
 public class BoundingBox implements Visitor<Location> {
+
+
 
     @Override
     public Location onCircle(final Circle c) {
@@ -22,37 +22,36 @@ public class BoundingBox implements Visitor<Location> {
 
     @Override
     public Location onGroup(final Group g) {
-        List<? extends Shape> Shapes = g.getShapes();
-        if (Shapes.isEmpty()) {
-            return new Location(0, 0, new Rectangle(0, 0));
-        }
-        int minimumX = Integer.MAX_VALUE;
-        int maximumX = Integer.MAX_VALUE;
-        int minimumY = Integer.MIN_VALUE;
-        int maximumY = Integer.MIN_VALUE;
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
 
-        for (Shape s : Shapes){
-            Location location = s.accept(this);
-            Rectangle rectangle = (Rectangle) location.getShape();
-            int x = location.getX();
-            int y = location.getY();
-            int widthOfShape = rectangle.getWidth();
-            int heightOfShape = rectangle.getHeight();
-            minimumX = Math.min(minimumX, x);
-            minimumY = Math.min(minimumY, y);
-            maximumX = Math.max(maximumX, x + widthOfShape);
-            maximumY = Math.max(maximumY, y + widthOfShape);
+        for (Shape s : g.getShapes()) {
+            Location boundingBox = s.accept(this);
+            int x = boundingBox.getX();
+            int y = boundingBox.getY();
+            int width = ((Rectangle) boundingBox.getShape()).getWidth();
+            int height = ((Rectangle) boundingBox.getShape()).getHeight();
+
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x + width > maxX) maxX = x + width;
+            if (y + height > maxY) maxY = y + height;
         }
-        return new Location(minimumX,minimumY, new Rectangle(maximumX - minimumX, maximumY - minimumY));
+
+        return new Location(minX, minY, new Rectangle(maxX - minX, maxY - minY));
+
     }
+
     @Override
     public Location onLocation(final Location l) {
-        return null;
+
+        Location boundingBox = l.getShape().accept(this);
+        return new Location(l.getX() + boundingBox.getX(), l.getY() + boundingBox.getY(), boundingBox.getShape());
     }
 
     @Override
     public Location onRectangle(final Rectangle r) {
-        return new Location(0,0, r);
+        return new Location(0, 0, r);
     }
 
     @Override
@@ -67,6 +66,17 @@ public class BoundingBox implements Visitor<Location> {
 
     @Override
     public Location onPolygon(final Polygon s) {
-        return null;
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+
+        for (Point point : s.getPoints()) {
+            int x = point.getX();
+            int y = point.getY();
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        }
+        return new Location(minX, minY, new Rectangle(maxX - minX, maxY - minY));
     }
 }

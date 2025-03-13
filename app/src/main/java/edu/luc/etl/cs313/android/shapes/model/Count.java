@@ -6,7 +6,7 @@ package edu.luc.etl.cs313.android.shapes.model;
  */
 public class Count implements Visitor<Integer> {
 
-    // TODO entirely your job - maybe done
+
 
     @Override
     public Integer onPolygon(final Polygon p) {
@@ -20,7 +20,11 @@ public class Count implements Visitor<Integer> {
 
     @Override
     public Integer onGroup(final Group g) {
-        return g.getShapes().size();
+        int count = 0;
+        for (Shape s : g.getShapes()) {
+            count += s.accept(this);
+        }
+        return count;
     }
 
     @Override
@@ -30,21 +34,21 @@ public class Count implements Visitor<Integer> {
 
     @Override
     public Integer onOutline(final Outline o) {
-        return 1;
+        return o.getShape().accept(this);
     }
 
     @Override
     public Integer onFill(final Fill c) {
-        return 1;
+        return c.getShape().accept(this);
     }
 
     @Override
     public Integer onLocation(final Location l) {
-        return 1;
+        return l.getShape().accept(this);
     }
 
     @Override
     public Integer onStrokeColor(final StrokeColor c) {
-        return 1;
+        return c.getShape().accept(this);
     }
 }
