@@ -30,24 +30,32 @@ public class Draw implements Visitor<Void> {
 
     @Override
     public Void onStrokeColor(final StrokeColor c) {
+        paint.setColor(c.getColor());
+        c.getShape().accept(this);
 
         return null;
     }
 
     @Override
     public Void onFill(final Fill f) {
+        paint.setStyle(Paint.Style.FILL);
+        f.getShape().accept(this);
 
         return null;
     }
 
     @Override
     public Void onGroup(final Group g) {
+        for (Shape shape: g.getShapes()) {
+            shape.accept(this);
+        }
 
         return null;
     }
 
     @Override
     public Void onLocation(final Location l) {
+        l.getShape().accept(this);
 
         return null;
     }
@@ -60,6 +68,8 @@ public class Draw implements Visitor<Void> {
 
     @Override
     public Void onOutline(Outline o) {
+        paint.setStyle(Paint.Style.STROKE);
+        o.getShape().accept(this);
 
         return null;
     }
